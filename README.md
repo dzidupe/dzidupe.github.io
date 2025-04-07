@@ -367,7 +367,7 @@ Contributions are welcome! Please follow these steps:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
+ 
 ## Acknowledgments
 
 - TradingView for the Lightweight Charts library
