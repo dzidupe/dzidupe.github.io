@@ -1,0 +1,11 @@
+{
+    "emeraldwalk.runonsave": {
+  "commands": [
+    {
+      "match": ".*\\.js$",  // change this to your file types
+      "cmd": "powershell -Command \"(Get-Content ${file}) -replace '\\0', '' | Set-Content ${file}\""
+    }
+  ]
+}
+
+}
