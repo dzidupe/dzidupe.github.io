@@ -1,4 +1,4 @@
-# Crypto Dashboard
+# [Crypto Dashboard](index.html) README
 
 A high-performance, zero-dependency cryptocurrency dashboard that displays real-time order books, price charts, and advanced market metrics for BTC, ETH, LTC, and SOL with sub-100ms update latency.
 
