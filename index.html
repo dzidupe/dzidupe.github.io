@@ -50,6 +50,10 @@
             color: #888;
             margin-top: 5px;
         }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -57,12 +61,12 @@
     <p>Choose which version of the website you'd like to view:</p>
     
     <div class="version-container" id="versionContainer">
-        <!-- Versions will be dynamically inserted here -->
+        <div class="loading">Loading available versions...</div>
     </div>
 
     <script>
-        // List of available versions with optional display names and descriptions
-        const versions = [
+        // Configuration - Update these to match your actual version folders
+        const VERSION_FOLDERS = [
             { 
                 folder: 'pecker-socket', 
                 name: 'Version 1.0', 
@@ -72,38 +76,70 @@
                 folder: 'socket-profile5.1', 
                 name: 'Version 2.0', 
                 description: 'Current version' 
-            },
+            }
         ];
 
         const container = document.getElementById('versionContainer');
 
-        versions.forEach(version => {
-            // Create card element
-            const card = document.createElement('div');
-            card.className = 'version-card';
-            
-            // Try to get last modified date
-            fetch(`versions/${version.folder}/index.html`)
-                .then(response => {
-                    if (response.ok) {
-                        const lastModified = new Date(response.headers.get('last-modified'));
-                        version.lastModified = lastModified.toLocaleDateString();
-                    }
-                    buildCard(card, version);
-                })
-                .catch(() => {
-                    buildCard(card, version);
-                });
-        });
-
-        function buildCard(card, version) {
-            card.innerHTML = `
-                <a href="${version.folder}/index.html">${version.name}</a>
-                <p>${version.description}</p>
-                ${version.lastModified ? `<div class="last-modified">Updated: ${version.lastModified}</div>` : ''}
-            `;
-            container.appendChild(card);
+        // Function to check if a version exists
+        async function checkVersionExists(version) {
+            try {
+                const response = await fetch(`/${version.folder}/index.html`, { method: 'HEAD' });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
         }
+
+        // Function to get last modified date
+        async function getLastModified(version) {
+            try {
+                const response = await fetch(`/${version.folder}/index.html`, { method: 'HEAD' });
+                if (response.ok) {
+                    const lastModified = response.headers.get('last-modified');
+                    return lastModified ? new Date(lastModified).toLocaleDateString() : 'Unknown date';
+                }
+                return null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        // Function to build version cards
+        async function buildVersionCards() {
+            const availableVersions = [];
+            
+            // Check each version
+            for (const version of VERSION_FOLDERS) {
+                const exists = await checkVersionExists(version);
+                if (exists) {
+                    version.lastModified = await getLastModified(version);
+                    availableVersions.push(version);
+                }
+            }
+            
+            // Display results
+            if (availableVersions.length === 0) {
+                container.innerHTML = '<div class="loading">No versions found. Please check your deployment.</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            availableVersions.forEach(version => {
+                const card = document.createElement('div');
+                card.className = 'version-card';
+                card.innerHTML = `
+                    <a href="/${version.folder}/index.html">${version.name}</a>
+                    <p>${version.description}</p>
+                    ${version.lastModified ? `<div class="last-modified">Updated: ${version.lastModified}</div>` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize
+        buildVersionCards();
     </script>
 </body>
 </html>
