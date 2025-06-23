@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-time cryptocurrency dashboard with order books and charts">
+    <title>Crypto Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Preload critical resources -->
+    <link rel="preload" href="https://unpkg.com/lightweight-charts@4.0.1/dist/lightweight-charts.standalone.production.js" as="script">
+</head>
+<body>
+    <div class="main-container">
+        <div class="order-books-container">
+            <!-- Consider using a template for repeated crypto containers -->
+            <!-- BTC Container -->
+            <div id="btc-container" class="crypto-container">
+                <div id="btc-loading-overlay" class="loading-overlay">Loading...</div>
+                <canvas id="btc-orderbook-canvas" class="orderbook-canvas"></canvas>
+                <div id="btc-bias-text" class="bias-text">
+                    <span class="metric-title" id="btc-ticker-name"></span>
+                    <span class="metric-value" id="btc-balance-percent"></span>
+                </div>
+                <div id="btc-mid-price-text" class="mid-price-text">
+                    <span id="btc-mid-price"></span>
+                </div>
+                <div id="btc-price-scale" class="price-scale">
+                    <div class="price-block">
+                        <span id="btc-min-price"></span>
+                        <span id="btc-lowest-price"></span>
+                    </div>
+                    <div class="price-block">
+                        <span id="btc-max-price"></span>
+                        <span id="btc-highest-price"></span>
+                    </div>
+                </div>
+                <div class="meter-wrapper first-meter">
+                    <div class="meter-title-value">
+                        <span class="metric-title">SPOT Δ:</span>
+                        <!-- Removed the value span but kept the ID for logic -->
+                        <span class="metric-value hidden-value" id="btc-spot-pressure-value">0.000</span>
+                        <!-- Button removed from here to avoid duplicate IDs -->
+                    </div>
+                    <canvas id="btc-spot-pressure-canvas" class="meter-canvas"></canvas>
+                </div>
+                <!-- Add clear liquidations button -->
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title">PERP Δ:</span>
+                        <!-- Removed the value span but kept the ID for logic -->
+                        <span class="metric-value hidden-value" id="btc-perp-pressure-value">0.000</span>
+                    </div>
+                    <canvas id="btc-perp-pressure-cvd-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title">OI Δ:</span>
+                        <!-- Removed the value span but kept the ID for logic -->
+                        <span class="metric-value hidden-value" id="btc-oi-value">0.000</span>
+                    </div>
+                    <canvas id="btc-oi-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title">LIQ Δ:</span>
+                        <!-- Removed the value span but kept the ID for logic -->
+                        <span class="metric-value hidden-value" id="btc-liq-value">0.000</span>
+                    </div>
+                    <canvas id="btc-liq-canvas" class="meter-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- ETH Container -->
+            <div id="eth-container" class="crypto-container">
+                <div id="eth-loading-overlay" class="loading-overlay">Loading...</div>
+                <canvas id="eth-orderbook-canvas" class="orderbook-canvas"></canvas>
+                <div id="eth-bias-text" class="bias-text">
+                    <span class="metric-title" id="eth-ticker-name"></span>
+                    <span class="metric-value" id="eth-balance-percent"></span>
+                </div>
+                <div id="eth-mid-price-text" class="mid-price-text">
+                    <span id="eth-mid-price"></span>
+                </div>
+                <div id="eth-price-scale" class="price-scale">
+                    <div class="price-block">
+                        <span id="eth-min-price"></span>
+                        <span id="eth-lowest-price"></span>
+                    </div>
+                    <div class="price-block">
+                        <span id="eth-max-price"></span>
+                        <span id="eth-highest-price"></span>
+                    </div>
+                </div>
+                <div class="meter-wrapper first-meter">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="eth-spot-pressure-title">SPOT Δ:</span>
+                    </div>
+                    <canvas id="eth-spot-pressure-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="eth-perp-cvd-title">PERP Δ:</span>
+                    </div>
+                    <canvas id="eth-perp-pressure-cvd-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="eth-oi-title">OI Δ:</span>
+                    </div>
+                    <canvas id="eth-oi-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="eth-liq-title">LIQ Δ:</span>
+                    </div>
+                    <canvas id="eth-liq-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- LTC Container -->
+            <div id="ltc-container" class="crypto-container">
+                <div id="ltc-loading-overlay" class="loading-overlay">Loading...</div>
+                <canvas id="ltc-orderbook-canvas" class="orderbook-canvas"></canvas>
+                <div id="ltc-bias-text" class="bias-text">
+                    <span class="metric-title" id="ltc-ticker-name"></span>
+                    <span class="metric-value" id="ltc-balance-percent"></span>
+                </div>
+                <div id="ltc-mid-price-text" class="mid-price-text">
+                    <span id="ltc-mid-price"></span>
+                </div>
+                <div id="ltc-price-scale" class="price-scale">
+                    <div class="price-block">
+                        <span id="ltc-min-price"></span>
+                        <span id="ltc-lowest-price"></span>
+                    </div>
+                    <div class="price-block">
+                        <span id="ltc-max-price"></span>
+                        <span id="ltc-highest-price"></span>
+                    </div>
+                </div>
+                <div class="meter-wrapper first-meter">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="ltc-spot-pressure-title">SPOT Δ:</span>
+                    </div>
+                    <canvas id="ltc-spot-pressure-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="ltc-perp-cvd-title">PERP Δ:</span>
+                    </div>
+                    <canvas id="ltc-perp-pressure-cvd-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="ltc-oi-title">OI Δ:</span>
+                    </div>
+                    <canvas id="ltc-oi-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="ltc-liq-title">LIQ Δ:</span>
+                    </div>
+                    <canvas id="ltc-liq-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- SOL Container -->
+            <div id="sol-container" class="crypto-container">
+                <div id="sol-loading-overlay" class="loading-overlay">Loading...</div>
+                <canvas id="sol-orderbook-canvas" class="orderbook-canvas"></canvas>
+                <div id="sol-bias-text" class="bias-text">
+                    <span class="metric-title" id="sol-ticker-name"></span>
+                    <span class="metric-value" id="sol-balance-percent"></span>
+                </div>
+                <div id="sol-mid-price-text" class="mid-price-text">
+                    <span id="sol-mid-price"></span>
+                </div>
+                <div id="sol-price-scale" class="price-scale">
+                    <div class="price-block">
+                        <span id="sol-min-price"></span>
+                        <span id="sol-lowest-price"></span>
+                    </div>
+                    <div class="price-block">
+                        <span id="sol-max-price"></span>
+                        <span id="sol-highest-price"></span>
+                    </div>
+                </div>
+                <div class="meter-wrapper first-meter">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="sol-spot-pressure-title">SPOT Δ:</span>
+                    </div>
+                    <canvas id="sol-spot-pressure-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="sol-perp-cvd-title">PERP Δ:</span>
+                    </div>
+                    <canvas id="sol-perp-pressure-cvd-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="sol-oi-title">OI Δ:</span>
+                    </div>
+                    <canvas id="sol-oi-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="sol-liq-title">LIQ Δ:</span>
+                    </div>
+                    <canvas id="sol-liq-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="charts-container">
+            <div class="chart-container" data-pair="BTC">
+                <div class="pair-selector">
+                    <button class="pair-button active" data-pair="BTC">BTC</button>
+                    <button class="pair-button" data-pair="ETH">ETH</button>
+                    <button class="pair-button" data-pair="LTC">LTC</button>
+                    <button class="pair-button" data-pair="SOL">SOL</button>
+                </div>
+                <div class="price-chart-container">
+                    <div class="loading-overlay">Loading BTC data...</div>
+                    <div class="price-chart"></div>
+                    <div class="price-title">BTCUSD</div>
+                    <!-- The button will be replaced by our JS code -->
+                    <div id="clear-liquidations-btn" class="clear-liq-btn">Clear Liquidations</div>
+                </div>
+                <!-- Meter container is still in HTML but hidden via CSS -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load external libraries first -->
+    <script src="https://unpkg.com/lightweight-charts@4.0.1/dist/lightweight-charts.standalone.production.js"></script>
+    
+    <!-- Load modules in dependency order -->
+    <script src="wsmanager.js"></script>
+    <script src="orderbook.js"></script>
+    <script src="indicators.js"></script>
+    <!-- Remove liquidations.js as it's now integrated into charts.js -->
+    <!-- <script src="liquidations.js"></script> -->
+    <!-- Remove dependency on chartOrderbook.js as it's now integrated into charts.js -->
+    <!-- <script src="chartOrderbook.js"></script> -->
+    <script>
+        // Create a wrapper to handle async code without modules
+        (function() {
+            // Load the charts.js script dynamically
+            const script = document.createElement('script');
+            script.src = 'charts.js';
+            script.onload = function() {
+                console.log('Charts.js loaded successfully');
+            };
+            script.onerror = function() {
+                console.error('Failed to load charts.js');
+                document.querySelectorAll('.loading-overlay').forEach(el => 
+                    el.textContent = 'Failed to load chart script');
+            };
+            document.body.appendChild(script);
+            
+            // Rest of the initialization code...
+        })();
+    </script>
+    
+    <!-- Initialize application -->
+    <script>
+        // Use async to not block rendering
+        (async function() {
+            console.log('Initializing dashboard with enhanced CORS proxy support');
+            
+            // Initialize CORS proxy with updated services
+            window.corsProxy = window.corsProxy || {
+                proxyServices: [
+                    // AllOrigins is now first since it's more reliable
+                    { name: 'AllOrigins', url: 'https://api.allorigins.win/raw?url=' },
+                    { name: 'CORS Anywhere', url: 'https://cors-anywhere.herokuapp.com/' },
+                    { name: 'corsproxy.io', url: 'https://corsproxy.io/?' }
+                ],
+                currentProxyIndex: 0,
+                get proxyName() {
+                    return this.proxyServices[this.currentProxyIndex].name;
+                },
+                get proxyUrl() {
+                    return this.proxyServices[this.currentProxyIndex].url;
+                },
+                useNextProxy: function() {
+                    this.currentProxyIndex = (this.currentProxyIndex + 1) % this.proxyServices.length;
+                    console.log(`Switched to ${this.proxyName} proxy`);
+                },
+                fetchJson: async function(url) {
+                    try {
+                        const response = await fetch(this.proxyUrl + encodeURIComponent(url));
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return await response.json();
+                    } catch (error) {
+                        console.warn(`Error with ${this.proxyName} proxy:`, error);
+                        throw error;
+                    }
+                }
+            };
+            
+            // Test proxies with Bitstamp API
+            let proxyFound = false;
+            for (let i = 0; i < window.corsProxy.proxyServices.length; i++) {
+                try {
+                    console.log(`Testing ${window.corsProxy.proxyName} proxy...`);
+                    const data = await window.corsProxy.fetchJson('https://www.bitstamp.net/api/v2/ohlc/btcusd/?step=300&limit=1');
+                    console.log(`${window.corsProxy.proxyName} proxy test successful:`, data);
+                    proxyFound = true;
+                    break; // Stop testing if successful
+                } catch (error) {
+                    console.warn(`${window.corsProxy.proxyName} proxy test failed:`, error);
+                    window.corsProxy.useNextProxy();
+                }
+            }
+            
+            if (!proxyFound) {
+                console.error("All CORS proxies failed. Some features may not work correctly.");
+            }
+            
+            // Handle visibility changes to maintain WebSocket connections
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    checkAllWebSocketConnections();
+                }
+            });
+            
+            // Handle computer sleep/wake events
+            window.addEventListener('online', () => {
+                checkAllWebSocketConnections();
+            });
+            
+            // Add event listener for page focus
+            window.addEventListener('focus', () => {
+                checkAllWebSocketConnections();
+            });
+            
+            // Function to check and reconnect all WebSocket connections
+            function checkAllWebSocketConnections() {
+                const managers = [
+                    window.chartsBitstampWsManager,
+                    window.chartsBybitWsManager,
+                    window.orderBooksBitstampWsManager,
+                    window.orderBooksBybitWsManager,
+                    window.bitstampWsManager,
+                    window.bybitWsManager
+                ];
+                
+                managers.forEach(manager => {
+                    if (manager && (!manager.connected || 
+                        (manager.ws && manager.ws.readyState !== WebSocket.OPEN))) {
+                        manager.connect();
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
