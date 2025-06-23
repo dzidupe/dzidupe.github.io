@@ -54,6 +54,9 @@
             color: #666;
             font-style: italic;
         }
+        .error {
+            color: #d9534f;
+        }
     </style>
 </head>
 <body>
@@ -65,15 +68,15 @@
     </div>
 
     <script>
-        // Configuration - Update these to match your actual version folders
+        // Configuration - Update these to match your version folders
         const VERSION_FOLDERS = [
             { 
-                folder: 'pecker-socket', 
+                path: 'versions/pecker-socket', 
                 name: 'Version 1.0', 
                 description: 'Initial version' 
             },
             { 
-                folder: 'socket-profile5.1', 
+                path: 'versions/socket-profile5.1', 
                 name: 'Version 2.0', 
                 description: 'Current version' 
             }
@@ -84,9 +87,14 @@
         // Function to check if a version exists
         async function checkVersionExists(version) {
             try {
-                const response = await fetch(`/${version.folder}/index.html`, { method: 'HEAD' });
+                // Use fetch with cache-busting to avoid false negatives
+                const response = await fetch(`/${version.path}/index.html?${Date.now()}`, { 
+                    method: 'HEAD',
+                    cache: 'no-store'
+                });
                 return response.ok;
             } catch (error) {
+                console.error(`Error checking ${version.path}:`, error);
                 return false;
             }
         }
@@ -94,52 +102,64 @@
         // Function to get last modified date
         async function getLastModified(version) {
             try {
-                const response = await fetch(`/${version.folder}/index.html`, { method: 'HEAD' });
+                const response = await fetch(`/${version.path}/index.html`, { method: 'HEAD' });
                 if (response.ok) {
                     const lastModified = response.headers.get('last-modified');
                     return lastModified ? new Date(lastModified).toLocaleDateString() : 'Unknown date';
                 }
                 return null;
             } catch (error) {
+                console.error(`Error getting last modified for ${version.path}:`, error);
                 return null;
             }
         }
 
         // Function to build version cards
         async function buildVersionCards() {
-            const availableVersions = [];
-            
-            // Check each version
-            for (const version of VERSION_FOLDERS) {
-                const exists = await checkVersionExists(version);
-                if (exists) {
-                    version.lastModified = await getLastModified(version);
-                    availableVersions.push(version);
+            try {
+                const availableVersions = [];
+                
+                // Check each version sequentially to avoid too many parallel requests
+                for (const version of VERSION_FOLDERS) {
+                    const exists = await checkVersionExists(version);
+                    if (exists) {
+                        version.lastModified = await getLastModified(version);
+                        availableVersions.push(version);
+                    }
                 }
+                
+                // Display results
+                if (availableVersions.length === 0) {
+                    container.innerHTML = `
+                        <div class="error">
+                            No versions found. Please check:<br>
+                            1. The versions folder exists<br>
+                            2. Each version has an index.html<br>
+                            3. GitHub Pages is properly configured
+                        </div>`;
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                availableVersions.forEach(version => {
+                    const card = document.createElement('div');
+                    card.className = 'version-card';
+                    card.innerHTML = `
+                        <a href="/${version.path}/index.html">${version.name}</a>
+                        <p>${version.description}</p>
+                        ${version.lastModified ? `<div class="last-modified">Updated: ${version.lastModified}</div>` : ''}
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error building version cards:', error);
+                container.innerHTML = '<div class="error">An error occurred while loading versions.</div>';
             }
-            
-            // Display results
-            if (availableVersions.length === 0) {
-                container.innerHTML = '<div class="loading">No versions found. Please check your deployment.</div>';
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            availableVersions.forEach(version => {
-                const card = document.createElement('div');
-                card.className = 'version-card';
-                card.innerHTML = `
-                    <a href="/${version.folder}/index.html">${version.name}</a>
-                    <p>${version.description}</p>
-                    ${version.lastModified ? `<div class="last-modified">Updated: ${version.lastModified}</div>` : ''}
-                `;
-                container.appendChild(card);
-            });
         }
 
         // Initialize
-        buildVersionCards();
+        document.addEventListener('DOMContentLoaded', buildVersionCards);
     </script>
 </body>
 </html>
