@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Real-time cryptocurrency dashboard with order books and charts">
+    <title>Crypto Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="preload" href="https://unpkg.com/lightweight-charts@5.0.0/dist/lightweight-charts.standalone.production.js" as="script">
+</head>
+<body>
+    <!-- Main dashboard container -->
+    <div class="main-container">
+        <!-- Order books for BTC, ETH, LTC, SOL -->
+        <div class="order-books-container">
+            <div id="btc-container" class="crypto-container">
+                <div id="btc-loading-overlay" class="loading-overlay">Loading...</div>
+                <canvas id="btc-orderbook-canvas" class="orderbook-canvas"></canvas>
+                <div id="btc-bias-text" class="bias-text">
+                    <span class="metric-title" id="btc-ticker-name"></span>
+                    <span class="metric-value" id="btc-balance-percent"></span>
+                </div>
+                <div id="btc-mid-price-text" class="mid-price-text">
+                    <span id="btc-mid-price"></span>
+                </div>
+                <div id="btc-price-scale" class="price-scale">
+                    <div class="price-block">
+                        <span id="btc-min-price"></span>
+                        <span id="btc-lowest-price"></span>
+                    </div>
+                    <div class="price-block">
+                        <span id="btc-max-price"></span>
+                        <span id="btc-highest-price"></span>
+                    </div>
+                </div>
+                <div class="meter-wrapper first-meter">
+                    <div class="meter-title-value">
+                        <span class="metric-title">SPOT Δ:</span>
+                        <span class="metric-value hidden-value" id="btc-spot-pressure-value">0.000</span>
+                    </div>
+                    <canvas id="btc-spot-pressure-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title">PERP Δ:</span>
+                        <span class="metric-value hidden-value" id="btc-perp-pressure-value">0.000</span>
+                    </div>
+                    <canvas id="btc-perp-pressure-cvd-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" style="color: #FFD700;">USD PREM.:</span>
+                        <span class="metric-value hidden-value" id="btc-usd-premium-value" style="color: #FFD700;">0.000</span>
+                    </div>
+                    <canvas id="btc-usd-premium-canvas" class="meter-canvas" style="border-bottom: 2px dashed #FFD700;"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title">OI Δ:</span>
+                        <span class="metric-value hidden-value" id="btc-oi-value">0.000</span>
+                    </div>
+                    <canvas id="btc-oi-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title">LIQ Δ:</span>
+                        <span class="metric-value hidden-value" id="btc-liq-value">0.000</span>
+                    </div>
+                    <canvas id="btc-liq-canvas" class="meter-canvas"></canvas>
+                </div>
+            </div>
+            <div id="eth-container" class="crypto-container">
+                <div id="eth-loading-overlay" class="loading-overlay">Loading...</div>
+                <canvas id="eth-orderbook-canvas" class="orderbook-canvas"></canvas>
+                <div id="eth-bias-text" class="bias-text">
+                    <span class="metric-title" id="eth-ticker-name"></span>
+                    <span class="metric-value" id="eth-balance-percent"></span>
+                </div>
+                <div id="eth-mid-price-text" class="mid-price-text">
+                    <span id="eth-mid-price"></span>
+                </div>
+                <div id="eth-price-scale" class="price-scale">
+                    <div class="price-block">
+                        <span id="eth-min-price"></span>
+                        <span id="eth-lowest-price"></span>
+                    </div>
+                    <div class="price-block">
+                        <span id="eth-max-price"></span>
+                        <span id="eth-highest-price"></span>
+                    </div>
+                </div>
+                <div class="meter-wrapper first-meter">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="eth-spot-pressure-title">SPOT Δ:</span>
+                        <span class="metric-value hidden-value" id="eth-spot-pressure-value">0.000</span>
+                    </div>
+                    <canvas id="eth-spot-pressure-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="eth-perp-cvd-title">PERP Δ:</span>
+                        <span class="metric-value hidden-value" id="eth-perp-pressure-value">0.000</span>
+                    </div>
+                    <canvas id="eth-perp-pressure-cvd-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="eth-oi-title">OI Δ:</span>
+                        <span class="metric-value hidden-value" id="eth-oi-value">0.000</span>
+                    </div>
+                    <canvas id="eth-oi-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="eth-liq-title">LIQ Δ:</span>
+                        <span class="metric-value hidden-value" id="eth-liq-value">0.000</span>
+                    </div>
+                    <canvas id="eth-liq-canvas" class="meter-canvas"></canvas>
+                </div>
+            </div>
+            <div id="ltc-container" class="crypto-container">
+                <div id="ltc-loading-overlay" class="loading-overlay">Loading...</div>
+                <canvas id="ltc-orderbook-canvas" class="orderbook-canvas"></canvas>
+                <div id="ltc-bias-text" class="bias-text">
+                    <span class="metric-title" id="ltc-ticker-name"></span>
+                    <span class="metric-value" id="ltc-balance-percent"></span>
+                </div>
+                <div id="ltc-mid-price-text" class="mid-price-text">
+                    <span id="ltc-mid-price"></span>
+                </div>
+                <div id="ltc-price-scale" class="price-scale">
+                    <div class="price-block">
+                        <span id="ltc-min-price"></span>
+                        <span id="ltc-lowest-price"></span>
+                    </div>
+                    <div class="price-block">
+                        <span id="ltc-max-price"></span>
+                        <span id="ltc-highest-price"></span>
+                    </div>
+                </div>
+                <div class="meter-wrapper first-meter">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="ltc-spot-pressure-title">SPOT Δ:</span>
+                        <span class="metric-value hidden-value" id="ltc-spot-pressure-value">0.000</span>
+                    </div>
+                    <canvas id="ltc-spot-pressure-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="ltc-perp-cvd-title">PERP Δ:</span>
+                        <span class="metric-value hidden-value" id="ltc-perp-pressure-value">0.000</span>
+                    </div>
+                    <canvas id="ltc-perp-pressure-cvd-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="ltc-oi-title">OI Δ:</span>
+                        <span class="metric-value hidden-value" id="ltc-oi-value">0.000</span>
+                    </div>
+                    <canvas id="ltc-oi-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="ltc-liq-title">LIQ Δ:</span>
+                        <span class="metric-value hidden-value" id="ltc-liq-value">0.000</span>
+                    </div>
+                    <canvas id="ltc-liq-canvas" class="meter-canvas"></canvas>
+                </div>
+            </div>
+            <div id="sol-container" class="crypto-container">
+                <div id="sol-loading-overlay" class="loading-overlay">Loading...</div>
+                <canvas id="sol-orderbook-canvas" class="orderbook-canvas"></canvas>
+                <div id="sol-bias-text" class="bias-text">
+                    <span class="metric-title" id="sol-ticker-name"></span>
+                    <span class="metric-value" id="sol-balance-percent"></span>
+                </div>
+                <div id="sol-mid-price-text" class="mid-price-text">
+                    <span id="sol-mid-price"></span>
+                </div>
+                <div id="sol-price-scale" class="price-scale">
+                    <div class="price-block">
+                        <span id="sol-min-price"></span>
+                        <span id="sol-lowest-price"></span>
+                    </div>
+                    <div class="price-block">
+                        <span id="sol-max-price"></span>
+                        <span id="sol-highest-price"></span>
+                    </div>
+                </div>
+                <div class="meter-wrapper first-meter">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="sol-spot-pressure-title">SPOT Δ:</span>
+                        <span class="metric-value hidden-value" id="sol-spot-pressure-value">0.000</span>
+                    </div>
+                    <canvas id="sol-spot-pressure-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="sol-perp-cvd-title">PERP Δ:</span>
+                        <span class="metric-value hidden-value" id="sol-perp-pressure-value">0.000</span>
+                    </div>
+                    <canvas id="sol-perp-pressure-cvd-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="sol-oi-title">OI Δ:</span>
+                        <span class="metric-value hidden-value" id="sol-oi-value">0.000</span>
+                    </div>
+                    <canvas id="sol-oi-canvas" class="meter-canvas"></canvas>
+                </div>
+                <div class="meter-wrapper">
+                    <div class="meter-title-value">
+                        <span class="metric-title" id="sol-liq-title">LIQ Δ:</span>
+                        <span class="metric-value hidden-value" id="sol-liq-value">0.000</span>
+                    </div>
+                    <canvas id="sol-liq-canvas" class="meter-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Console for liquidations and trades -->
+        <div class="console-container">
+            <div id="console-capture" class="console-capture">
+                <div id="console-capture-title" class="console-capture-title">LIQS/TRADES</div>
+                <canvas id="console-title-line" width="85" height="1"></canvas>
+            </div>
+        </div>
+        <!-- Charts and pair selector -->
+        <div class="charts-container">
+            <div class="chart-container" data-pair="BTC">
+                <div class="pair-selector">
+                    <button type="button" class="pair-button active" data-pair="BTC">BTC</button>
+                    <button type="button" class="pair-button" data-pair="ETH">ETH</button>
+                    <button type="button" class="pair-button" data-pair="LTC">LTC</button>
+                    <button type="button" class="pair-button" data-pair="SOL">SOL</button>
+                    <div class="dropdown">
+                        <button type="button" class="pair-button dropdown-toggle" id="more-pairs-btn">ALTS</button>
+                        <div class="dropdown-content" id="more-pairs-dropdown"></div>
+                    </div>
+                    <button type="button" class="pair-button" id="tradingview-toggle-btn">CHART</button>
+                    <button type="button" class="pair-button fullscreen-toggle" id="fullscreen-toggle" title="Toggle Fullscreen Mode"></button>
+                </div>
+                <div class="price-chart-container">
+                    <div class="loading-overlay">Loading BTC data...</div>
+                    <div class="price-chart"></div>
+                    <div id="popup-chart-wrapper" class="popup-chart-wrapper">
+                        <div class="popup-chart-header">
+                            <div class="popup-chart-timeframes">
+                                <button type="button" class="popup-timeframe-btn" data-interval="1">1m</button>
+                                <button type="button" class="popup-timeframe-btn" data-interval="5">5m</button>
+                                <button type="button" class="popup-timeframe-btn" data-interval="15">15m</button>
+                                <button type="button" class="popup-timeframe-btn" data-interval="30">30m</button>
+                                <button type="button" class="popup-timeframe-btn active" data-interval="60">1h</button>
+                                <button type="button" class="popup-timeframe-btn" data-interval="240">4h</button>
+                                <button type="button" class="popup-timeframe-btn" data-interval="1D">1D</button>
+                            </div>
+                            <div class="popup-chart-controls">
+                                <button type="button" class="popup-chart-toggle" title="Toggle Chart Visibility">−</button>
+                            </div>
+                        </div>
+                        <div id="popup-chart-container" class="popup-chart-container"></div>
+                        <div class="popup-chart-resize-handle" title="Resize"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initial XLSX handling script -->
+    <script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+    </script>
+
+    <!-- Core dependencies -->
+    <script src="https://unpkg.com/lightweight-charts@5.0.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="utils/mathUtils.js"></script>
+    <script src="utils/shared/profiles/baseProfile.js"></script>
+    <script src="utils/shared/indicatorChartUtils.js"></script>
+    <script src="modules/popup-chart.js"></script>
+
+    <!-- Console filtering for production -->
+    <script>
+    (function() {
+        // Store original console methods
+        const originalMethods = {
+            warn: console.warn,
+            error: console.error,
+            log: console.log
+        };
+        
+        // Compile regex patterns once for better performance
+        const filterRegex = /\[Violation\]|ResizeObserver|Resizing chart to|Container dimensions|Candlestick data set successfully|Chart fitted to content|Using cached data|Cached \d+ bars|Received \d+ bars|Restored \d+ drawings|Cleanup completed|No CVD pane available|CVD pane not available|Creating perpImbalance|Number of panes|Using second pane|Creating.*series|Using pane index|Successfully created|Using provided OI data|Spot data length|Futures data length|OI data length|Setting perpImbalance data|Drawing functionality enabled|Performing secondary initialization|Updating chart with fresh data/i;
+        
+        const keepRegex = /WebSocket connected successfully|Charts\.js loaded successfully|ConsoleCapture\.js loaded successfully|Error/i;
+        
+        // Single efficient filter function
+        const shouldFilter = (message) => {
+            if (typeof message !== 'string') return false;
+            return filterRegex.test(message) && !keepRegex.test(message);
+        };
+        
+        // Apply filtering to all console methods
+        ['warn', 'error', 'log'].forEach(method => {
+            console[method] = (...args) => {
+                if (args.length > 0 && !shouldFilter(args[0])) {
+                    originalMethods[method].apply(console, args);
+                }
+            };
+        });
+    })();
+    </script>
+
+    <!-- Utility: Load and parse XLSX file -->
+    <script>
+    function loadFileData(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const workbook = XLSX.read(reader.result, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false, defval: '' });
+                    const filteredData = jsonData.filter(row => row.some(cell => cell !== '' && cell != null));
+                    const headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(cell => cell !== '' && cell != null).length >=
+                        (filteredData[index + 1]?.filter(cell => cell !== '' && cell != null).length || 0)
+                    ) || 0;
+                    const csv = XLSX.utils.sheet_to_csv(XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)));
+                    resolve(csv);
+                } catch (error) {
+                    console.error('Error loading XLSX file:', error);
+                    reject(error);
+                }
+            };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsArrayBuffer(file);
+        });
+    }
+    </script>
+
+    <!-- Core scripts -->
+    <script src="wsmanager.js"></script>
+    <script src="modules/orderbook.js"></script>
+    <script src="modules/consoleCapture.js"></script>
+    <script src="indicators/utils.js"></script>
+    <!-- Load data stores first for background updating -->
+    <script src="indicators/data/cvdDataStore.js"></script>
+    <script src="indicators/data/perpCvdDataStore.js"></script>
+    <script src="indicators/data/perpImbalanceDataStore.js"></script>
+
+    <!-- Then load indicator scripts -->
+    <script src="indicators/cvd.js"></script>
+    <script src="indicators/perpcvd.js"></script>
+    <script src="indicators/perpImbalance.js"></script>
+    <script src="indicators/bybitNetFlow.js"></script>
+    <script src="modules/charts.js"></script>
+    <script src="indicators/indicators.js"></script>
+    <script src="profiles/volumeProfile.js?v=1.6"></script>
+    <script src="profiles/fundingProfile.js?v=1.0"></script>
+    <script src="profiles/openInterestProfile.js?v=1.4"></script>
+    <script src="profiles/profileManager.js?v=1.0"></script>
+
+    <!-- Popup chart controls -->
+    <script>
+    (function() {
+        // Shared utility functions
+        const popupChartUtils = {
+            // Create and show loading indicator
+            showLoadingIndicator: function(container) {
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.id = 'popup-chart-loading';
+                loadingIndicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 10px 20px; border-radius: 4px; z-index: 10;';
+                loadingIndicator.textContent = 'Loading chart...';
+                container.appendChild(loadingIndicator);
+                return loadingIndicator;
+            },
+            
+            // Update timeframe buttons
+            updateTimeframeButtons: function(interval) {
+                document.querySelectorAll('.popup-timeframe-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.interval === interval);
+                });
+            },
+            
+            // Check if chart is visible
+            isChartVisible: function() {
+                const container = document.getElementById('popup-chart-wrapper');
+                return container && container.style.display !== 'none';
+            }
+        };
+        
+        // Initialize popup chart
+        window.initializePopupChart = function(symbol = 'BTCUSD', interval = '60') {
+            if (!popupChartUtils.isChartVisible()) return;
+            
+            window.currentPopupChartInterval = interval;
+            window.currentPopupChartSymbol = symbol;
+            
+            if (window.popupChart) {
+                window.popupChart.initialize(symbol, interval);
+                setTimeout(() => popupChartUtils.updateTimeframeButtons(interval), 50);
+            }
+        };
+        
+        // Update popup chart with new pair/interval
+        window.updatePopupChart = function(pair, interval) {
+            if (!popupChartUtils.isChartVisible()) return;
+            
+            const popupChartWrapper = document.getElementById('popup-chart-wrapper');
+            const symbol = pair.toUpperCase() + 'USD';
+            const currentInterval = interval || window.currentPopupChartInterval || '60';
+            
+            window.currentPopupChartInterval = currentInterval;
+            window.currentPopupChartSymbol = symbol;
+            
+            popupChartUtils.updateTimeframeButtons(currentInterval);
+            
+            if (window.popupChart) {
+                window.popupChart.cleanup();
+                const loadingIndicator = popupChartUtils.showLoadingIndicator(popupChartWrapper);
+                
+                try {
+                    window.popupChart.initialize(symbol, currentInterval);
+                    loadingIndicator.remove();
+                    
+                    // Load chart data after a short delay
+                    setTimeout(() => {
+                        if (window.popupChart && window.currentPopupChartSymbol === symbol) {
+                            window.popupChart.loadChartData(symbol, currentInterval);
+                        }
+                    }, 300);
+                } catch (error) {
+                    console.error('Error initializing popup chart:', error);
+                    loadingIndicator.remove();
+                }
+            }
+        };
+    })();
+    </script>
+
+    <script>
+    // Define updatePopupChartTimeframe in the global scope
+    window.updatePopupChartTimeframe = function(interval) {
+        if (!window.currentPopupChartSymbol) {
+            console.error('No current symbol found for popup chart');
+            return;
+        }
+        
+        if (window.currentPopupChartInterval === interval) {
+            return;
+        }
+        
+        // Update global state
+        window.currentPopupChartInterval = interval;
+        
+        // Update button states
+        document.querySelectorAll('.popup-timeframe-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.interval === interval);
+        });
+        
+        // Update the chart
+        if (window.popupChart) {
+            window.popupChart.updateTimeframe(interval);
+        } else {
+            console.error('Popup chart not initialized');
+        }
+    };
+    </script>
+
+    <script>
+    // Make savePopupChartState globally available
+    window.savePopupChartState = function() {
+        const popupChartWrapper = document.getElementById('popup-chart-wrapper');
+        if (!popupChartWrapper) return;
+        
+        localStorage.setItem('popupChartState', JSON.stringify({
+            width: popupChartWrapper.style.width,
+            height: popupChartWrapper.style.height,
+            left: popupChartWrapper.style.left,
+            top: popupChartWrapper.style.top,
+            visible: popupChartWrapper.style.display === 'flex'
+        }));
+    };
+    </script>
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const popupChartWrapper = document.getElementById('popup-chart-wrapper');
+        const chartToggleBtn = document.getElementById('tradingview-toggle-btn');
+        const popupChartToggleBtn = popupChartWrapper.querySelector('.popup-chart-toggle');
+        const header = popupChartWrapper.querySelector('.popup-chart-header');
+
+        function loadPopupChartState() {
+            try {
+                popupChartWrapper.style.width = '400px';
+                popupChartWrapper.style.height = '300px';
+                popupChartWrapper.style.left = '10px';
+                popupChartWrapper.style.top = '10px';
+                const state = JSON.parse(localStorage.getItem('popupChartState'));
+                if (state) {
+                    popupChartWrapper.style.width = state.width || '400px';
+                    popupChartWrapper.style.height = state.height || '300px';
+                    popupChartWrapper.style.left = state.left || '10px';
+                    popupChartWrapper.style.top = state.top || '10px';
+                }
+            } catch (e) {
+                console.warn('Error loading popup chart state:', e);
+            }
+        }
+
+        loadPopupChartState();
+
+        popupChartToggleBtn.addEventListener('click', () => {
+            popupChartWrapper.style.display = 'none';
+            chartToggleBtn.classList.remove('active');
+            window.savePopupChartState();
+        });
+
+        chartToggleBtn.addEventListener('click', function() {
+            const isVisible = popupChartWrapper.style.display === 'flex';
+            if (isVisible) {
+                popupChartWrapper.style.display = 'none';
+                this.classList.remove('active');
+                window.savePopupChartState();
+            } else {
+                popupChartWrapper.style.display = 'flex';
+                popupChartWrapper.classList.add('visible');
+                this.classList.add('active');
+                const pair = window.currentPair || 'BTC';
+                const interval = window.currentPopupChartInterval || '60';
+                window.currentPopupChartSymbol = pair + 'USD';
+                window.currentPopupChartInterval = interval;
+                document.querySelectorAll('.popup-timeframe-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.interval === interval);
+                });
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.id = 'popup-chart-loading';
+                loadingIndicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 10px 20px; border-radius: 4px; z-index: 10;';
+                loadingIndicator.textContent = 'Loading chart...';
+                popupChartWrapper.appendChild(loadingIndicator);
+                if (window.popupChart) {
+                    window.popupChart.cleanup();
+                    try {
+                        window.popupChart.initialize(pair + 'USD', interval);
+                        loadingIndicator.remove();
+                        setTimeout(() => {
+                            if (window.popupChart && window.currentPopupChartSymbol === pair + 'USD') {
+                                window.popupChart.loadChartData(pair + 'USD', interval);
+                            }
+                        }, 300);
+                    } catch (error) {
+                        console.error('Error initializing popup chart:', error);
+                        loadingIndicator.remove();
+                    }
+                }
+                window.savePopupChartState();
+            }
+        });
+
+        let isDragging = false, dragOffsetX, dragOffsetY;
+        header.addEventListener('mousedown', e => {
+            isDragging = true;
+            dragOffsetX = e.clientX - popupChartWrapper.getBoundingClientRect().left;
+            dragOffsetY = e.clientY - popupChartWrapper.getBoundingClientRect().top;
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            const chartContainer = document.querySelector('.price-chart-container');
+            const chartRect = chartContainer.getBoundingClientRect();
+            let newLeft = e.clientX - dragOffsetX - chartRect.left;
+            let newTop = e.clientY - dragOffsetY - chartRect.top;
+            newLeft = Math.max(0, Math.min(newLeft, chartRect.width - popupChartWrapper.offsetWidth));
+            newTop = Math.max(0, Math.min(newTop, chartRect.height - popupChartWrapper.offsetHeight));
+            popupChartWrapper.style.left = newLeft + 'px';
+            popupChartWrapper.style.top = newTop + 'px';
+        }
+
+        function onMouseUp() {
+            isDragging = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            window.savePopupChartState();
+        }
+
+        // Debug the available timeframe buttons
+        const timeframeButtons = document.querySelectorAll('.popup-timeframe-btn');
+        console.log('Found timeframe buttons:', timeframeButtons.length);
+        timeframeButtons.forEach(button => {
+            console.log('Timeframe button:', button.dataset.interval, button);
+            
+            // Remove any existing click handlers to avoid duplicates
+            button.removeEventListener('click', button._clickHandler);
+            
+            // Add new click handler with reference for removal
+            button._clickHandler = () => {
+                try {
+                    console.log('Timeframe button clicked:', button.dataset.interval);
+                    
+                    // Verify the global function exists
+                    if (typeof window.updatePopupChartTimeframe !== 'function') {
+                        console.error('updatePopupChartTimeframe is not defined!');
+                        return;
+                    }
+                    
+                    // Use the updatePopupChartTimeframe function to handle timeframe changes
+                    window.updatePopupChartTimeframe(button.dataset.interval);
+                } catch (error) {
+                    console.error('Error handling timeframe button click:', error);
+                }
+            };
+            
+            button.addEventListener('click', button._clickHandler);
+        });
+
+        popupChartWrapper.addEventListener('resize', () => {
+            if (window.popupChart) {
+                const container = document.getElementById('popup-chart-container');
+                if (container) {
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    if (width > 50 && height > 50) {
+                        window.popupChart.chart.resize(width, height);
+                    }
+                }
+            }
+            window.savePopupChartState();
+        });
+
+        // Add resize observer for the wrapper
+        const wrapperResizeObserver = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                const { width, height } = entry.contentRect;
+                if (window.popupChart && window.popupChart.chart) {
+                    window.popupChart.chart.resize(width, height);
+                }
+            }
+            window.savePopupChartState();
+        });
+        wrapperResizeObserver.observe(popupChartWrapper);
+
+        // Clean up observer on page unload
+        window.addEventListener('beforeunload', () => {
+            wrapperResizeObserver.disconnect();
+        });
+    });
+
+    window.initializeTradingViewControls = function() {
+        return true; // Legacy function, using popup chart
+    };
+    </script>
+
+    <!-- Pair selection and chart updates -->
+    <script>
+    window.updateActiveButtonState = function(pair) {
+        document.querySelectorAll('.pair-button[data-pair], .dropdown-item[data-pair]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.pair === pair);
+        });
+    };
+
+    window.updateChart = function(pair) {
+        window.updateActiveButtonState(pair);
+        if (window.switchPair) {
+            window.switchPair(pair);
+            window.currentPair = pair;
+        } else {
+            console.error('switchPair function not available');
+        }
+    };
+
+    window.updatePopupChart = function(pair) {
+        const symbol = pair.toUpperCase() + 'USD';
+        window.currentPopupChartSymbol = symbol;
+        const interval = window.currentPopupChartInterval || '60';
+        if (window.popupChart) {
+            window.popupChart.cleanup();
+            window.popupChart.initialize(symbol, interval);
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const morePairsBtn = document.getElementById('more-pairs-btn');
+        const morePairsDropdown = document.getElementById('more-pairs-dropdown');
+        const altPairs = [
+            'ADA', 'AAVE', 'AVAX', 'DOGE', 'DOT', 'FIL', 'LINK', 'MATIC', 'UNI', 'XRP', 'XLM', 'MKR', 'SUSHI', 'COMP', 'CRV', '1INCH', 'LRC', 'FET', 'DYDX', 'INJ', 'AXS', 'GRT', 'SNX', 'YFI', 'BAND', 'KNC', 'ENS', 'CVX', 'RNDR', 'AUDIO', 'NEXO', 'PEPE', 'PERP', 'PYTH', 'RAD', 'GODS', 'CTSI', 'SKL', 'FLR'
+        ].sort();
+
+        altPairs.forEach(pair => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'dropdown-item';
+            button.dataset.pair = pair;
+            button.textContent = pair;
+            morePairsDropdown.appendChild(button);
+            button.addEventListener('click', function() {
+                morePairsDropdown.classList.remove('show');
+                const pair = this.dataset.pair;
+                const popupChartWrapper = document.getElementById('popup-chart-wrapper');
+                const isVisible = popupChartWrapper && popupChartWrapper.style.display === 'flex';
+                if (isVisible) {
+                    popupChartWrapper.style.display = 'none';
+                    window.updateChart(pair);
+                    setTimeout(() => {
+                        popupChartWrapper.style.display = 'flex';
+                        const loadingIndicator = document.createElement('div');
+                        loadingIndicator.id = 'popup-chart-priority-loading';
+                        loadingIndicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 10px 20px; border-radius: 4px; z-index: 10;';
+                        loadingIndicator.textContent = `Loading ${pair} chart...`;
+                        popupChartWrapper.appendChild(loadingIndicator);
+                        window.updatePopupChart(pair);
+                        setTimeout(() => {
+                            const indicator = document.getElementById('popup-chart-priority-loading');
+                            if (indicator) indicator.remove();
+                        }, 100);
+                    }, 300);
+                } else {
+                    window.currentPopupChartSymbol = pair.toUpperCase() + 'USD';
+                    window.updateChart(pair);
+                }
+            });
+        });
+
+        morePairsBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            morePairsDropdown.classList.toggle('show');
+        });
+
+        document.addEventListener('click', e => {
+            if (!morePairsBtn.contains(e.target) && !morePairsDropdown.contains(e.target)) {
+                morePairsDropdown.classList.remove('show');
+            }
+        });
+
+        document.querySelectorAll('.pair-button[data-pair]').forEach(button => {
+            button.addEventListener('click', function() {
+                const pair = this.dataset.pair;
+                const popupChartWrapper = document.getElementById('popup-chart-wrapper');
+                const isVisible = popupChartWrapper && popupChartWrapper.style.display === 'flex';
+                if (isVisible) {
+                    popupChartWrapper.style.display = 'none';
+                    window.updateChart(pair);
+                    setTimeout(() => {
+                        popupChartWrapper.style.display = 'flex';
+                        const loadingIndicator = document.createElement('div');
+                        loadingIndicator.id = 'popup-chart-priority-loading';
+                        loadingIndicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 10px 20px; border-radius: 4px; z-index: 10;';
+                        loadingIndicator.textContent = `Loading ${pair} chart...`;
+                        popupChartWrapper.appendChild(loadingIndicator);
+                        window.updatePopupChart(pair);
+                        setTimeout(() => {
+                            const indicator = document.getElementById('popup-chart-priority-loading');
+                            if (indicator) indicator.remove();
+                        }, 100);
+                    }, 300);
+                } else {
+                    window.currentPopupChartSymbol = pair.toUpperCase() + 'USD';
+                    window.updateChart(pair);
+                }
+            });
+        });
+
+        const chartToggleBtn = document.getElementById('tradingview-toggle-btn');
+        chartToggleBtn.onclick = function() {
+            const popupChartWrapper = document.getElementById('popup-chart-wrapper');
+            const isVisible = popupChartWrapper && popupChartWrapper.style.display === 'flex';
+            
+            if (isVisible) {
+                // Hide the chart if it's already visible
+                popupChartWrapper.style.display = 'none';
+                this.classList.remove('active');
+                window.savePopupChartState();
+            } else {
+                // Show the chart and initialize it with the current pair
+                popupChartWrapper.style.display = 'flex';
+                popupChartWrapper.classList.add('visible');
+                this.classList.add('active');
+                
+                const currentPair = window.currentPair || 'BTC';
+                const interval = window.currentPopupChartInterval || '60';
+                
+                // Initialize popup chart with current pair and interval
+                
+                window.currentPopupChartSymbol = currentPair.toUpperCase() + 'USD';
+                window.currentPopupChartInterval = interval;
+                
+                // Update timeframe button states
+                document.querySelectorAll('.popup-timeframe-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.interval === interval);
+                });
+                
+                // Show loading indicator
+                const loadingIndicator = document.createElement('div');
+                loadingIndicator.id = 'popup-chart-loading';
+                loadingIndicator.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.7); color: white; padding: 10px 20px; border-radius: 4px; z-index: 10;';
+                loadingIndicator.textContent = 'Loading chart...';
+                popupChartWrapper.appendChild(loadingIndicator);
+                
+                // Initialize the chart
+                if (window.popupChart) {
+                    window.popupChart.cleanup();
+                    try {
+                        const symbol = currentPair.toUpperCase() + 'USD';
+                        // Initialize popup chart with symbol and interval
+                        window.popupChart.initialize(symbol, interval);
+                        
+                        // Load chart data after a short delay to ensure the chart is ready
+                        setTimeout(() => {
+                            if (window.popupChart && window.currentPopupChartSymbol === symbol) {
+                                // Load chart data for the specified symbol and interval
+                                window.popupChart.loadChartData(symbol, interval);
+                                if (loadingIndicator) loadingIndicator.remove();
+                            }
+                        }, 300);
+                    } catch (error) {
+                        console.error('Error initializing popup chart:', error);
+                        if (loadingIndicator) loadingIndicator.remove();
+                    }
+                }
+                
+                window.savePopupChartState();
+            }
+        };
+    });
+    </script>
+    
+    <!-- Fix for timeframe buttons and close button -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all timeframe buttons
+        const timeframeButtons = document.querySelectorAll('.popup-timeframe-btn');
+        
+        // Add click event listener to each button
+        timeframeButtons.forEach(button => {
+            const interval = button.dataset.interval;
+            
+            // Remove any existing click handlers
+            button.onclick = null;
+            
+            // Add new direct click handler
+            button._clickHandler = () => {
+                try {
+                    // Update active button state
+                    timeframeButtons.forEach(btn => {
+                        btn.classList.toggle('active', btn === button);
+                    });
+                    
+                    // Call the global updatePopupChartTimeframe function
+                    if (typeof window.updatePopupChartTimeframe === 'function') {
+                        window.updatePopupChartTimeframe(interval);
+                    } else {
+                        console.error('updatePopupChartTimeframe function not found!');
+                    }
+                    
+                    return false;
+                } catch (error) {
+                    console.error('Error handling timeframe button click:', error);
+                }
+            };
+            
+            button.addEventListener('click', button._clickHandler);
+        });
+        
+        // Fix for the popup chart close button
+        const popupChartToggleBtn = document.querySelector('.popup-chart-toggle');
+        if (popupChartToggleBtn) {
+            // Remove any existing click handlers
+            popupChartToggleBtn.onclick = null;
+            
+            // Add new direct click handler
+            popupChartToggleBtn.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const popupChartWrapper = document.getElementById('popup-chart-wrapper');
+                const chartToggleBtn = document.getElementById('tradingview-toggle-btn');
+                
+                if (popupChartWrapper) {
+                    popupChartWrapper.style.display = 'none';
+                }
+                
+                if (chartToggleBtn) {
+                    chartToggleBtn.classList.remove('active');
+                }
+                
+                if (typeof window.savePopupChartState === 'function') {
+                    window.savePopupChartState();
+                }
+                
+                return false;
+            };
+        }
+    });
+    </script>
+</body>
+</html>

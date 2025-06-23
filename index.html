@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Version Selector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+        }
+        .version-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .version-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            width: 200px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .version-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .version-card a {
+            text-decoration: none;
+            color: #0066cc;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .version-card p {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .last-modified {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Select a Website Version</h1>
+    <p>Choose which version of the website you'd like to view:</p>
+    
+    <div class="version-container" id="versionContainer">
+        <!-- Versions will be dynamically inserted here -->
+    </div>
+
+    <script>
+        // List of available versions with optional display names and descriptions
+        const versions = [
+            { 
+                folder: 'pecker-socket', 
+                name: 'Version 1.0', 
+                description: 'Initial version' 
+            },
+            { 
+                folder: 'socket-profile5.1', 
+                name: 'Version 2.0', 
+                description: 'Current version' 
+            },
+        ];
+
+        const container = document.getElementById('versionContainer');
+
+        versions.forEach(version => {
+            // Create card element
+            const card = document.createElement('div');
+            card.className = 'version-card';
+            
+            // Try to get last modified date
+            fetch(`versions/${version.folder}/index.html`)
+                .then(response => {
+                    if (response.ok) {
+                        const lastModified = new Date(response.headers.get('last-modified'));
+                        version.lastModified = lastModified.toLocaleDateString();
+                    }
+                    buildCard(card, version);
+                })
+                .catch(() => {
+                    buildCard(card, version);
+                });
+        });
+
+        function buildCard(card, version) {
+            card.innerHTML = `
+                <a href="${version.folder}/index.html">${version.name}</a>
+                <p>${version.description}</p>
+                ${version.lastModified ? `<div class="last-modified">Updated: ${version.lastModified}</div>` : ''}
+            `;
+            container.appendChild(card);
+        }
+    </script>
+</body>
+</html>
